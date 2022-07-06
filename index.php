@@ -95,10 +95,13 @@ switch($data['object_kind']) {
         $webhook->setTitle(count($commits) . " commits in '" . $project['default_branch'] . "'");
         foreach($commits as $commit) {
             $timestamp = date("dS M Y", strtotime($commit['timestamp']));
+            $added = count($commit['added']);
+            $modified = count($commit['modified']);
+            $removed = count($commit['removed']);
             if(substr($commit['message'], 0, 2) == $privatePrefix) {
-                $webhook->addField("Private Commit", "[$timestamp] *This commit has been marked as private*.", false);
+                $webhook->addField("{$commit['author']['name']} on the $timestamp", "This commit is private.", false);
             } else {
-                $webhook->addField($commit['title'], "[$timestamp] {$commit['message']}", false);
+                $webhook->addField("{$commit['author']['name']} on the $timestamp", "{$commit['message']}**+{$added}** Files **+-{$modified}** Files **-{$removed}** Files\n", false);
             }
         }
         $webhook->setColor("B024FF");
