@@ -89,20 +89,22 @@ $project = $data['project'];
 
 switch($data['object_kind']) {
     case "push":
-        $commit = end($data['commits']);
+        $commits = $data['commits'];
 
         $webhook->setAuthor($data['user_name'], "", $data['user_avatar']);
-        $webhook->setTitle("Commit in '" . $project['default_branch'] . "'");
-        if(substr($commit['message'], 0, 2) == $privatePrefix) {
-            $webhook->setDescription("*This commit has been marked as private.*");
-        } else {
-            $webhook->setDescription($commit['message']);
+        $webhook->setTitle(count($commits) . " commits in '" . $project['default_branch'] . "'");
+        foreach($commits as $commit) {
+            $timestamp = date("dS M Y", strtotime($commit['timestamp']));
+            if(substr($commit['message'], 0, 2) == $privatePrefix) {
+                $webhook->addField("Private Commit", "[$timestamp] *This commit has been marked as private*.", false);
+            } else {
+                $webhook->addField($commit['title'], "[$timestamp] {$commit['message']}", false);
+            }
         }
         $webhook->setColor("B024FF");
         $webhook->setFooter($project['name'], $project['avatar_url']);
         $webhook->setTimestamp(date("c"));
         $webhook->sendWebhook();
-
 
         break;
 
@@ -127,11 +129,12 @@ switch($data['object_kind']) {
             $webhook->setColor("E44141");
         }
 
-        if(substr($commit['message'], 0, 2) == $privatePrefix) {
-            $webhook->addField("Commit by " . $commit['author']['name'] . ".", "*This commit has been marked as private.*", false);
-        } else {
-            $webhook->addField("Commit by " . $commit['author']['name'] . ".", $commit['message'], false);
-        }
+        // No real need to display this
+        // if(substr($commit['message'], 0, 2) == $privatePrefix) {
+        //     $webhook->addField("Commit by " . $commit['author']['name'] . ".", "*This commit has been marked as private.*", false);
+        // } else {
+        //     $webhook->addField("Commit by " . $commit['author']['name'] . ".", $commit['message'], false);
+        // }
 
         $webhook->setAuthor($user['name'], "", $user['avatar_url']);
         $webhook->setFooter($project['name'], $project['avatar_url']);
